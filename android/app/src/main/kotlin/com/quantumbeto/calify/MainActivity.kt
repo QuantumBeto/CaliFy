@@ -1,4 +1,4 @@
-package com.quantumbeto.calify.calify
+package com.quantumbeto.calify
 
 import io.flutter.embedding.android.FlutterActivity
 
