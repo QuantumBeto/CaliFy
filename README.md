@@ -1,10 +1,10 @@
-# calify
+# CALIFY
 
-A new Flutter project.
+Un proyecto de Flutter para la Evaluación de Bandas de Guerra.
 
-## Getting Started
+## EMPEZANDO
 
-This project is a starting point for a Flutter application.
+Este proyecto está en desarollo de aplicacion Flutter.
 
 A few resources to get you started if this is your first Flutter project:
 
