@@ -1,30 +1,51 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:calify/main.dart';
+import 'package:calify/auth_servicio.dart';
+import 'package:calify/config.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('usuario -> correo interno', () {
+    test('agrega el dominio interno y pasa a minúsculas', () {
+      expect(AuthServicio.usuarioACorreo('Juan'), 'juan@${Config.dominioInterno}');
+      expect(AuthServicio.usuarioACorreo('  maria.lopez '),
+          'maria.lopez@${Config.dominioInterno}');
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('si ya trae @ se respeta', () {
+      expect(AuthServicio.usuarioACorreo('Beto@Hotmail.com'), 'beto@hotmail.com');
+    });
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  group('validar usuario', () {
+    test('acepta nombres válidos', () {
+      for (final u in ['juan', 'Juan', 'maria.lopez', 'banda_01', 'a-b-c', 'abc']) {
+        expect(AuthServicio.validarUsuario(u), isNull, reason: u);
+      }
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('rechaza nombres inválidos', () {
+      final malos = [
+        '',
+        'ab',
+        'a' * 21,
+        'juan perez',
+        'ñandú',
+        '.juan',
+        'juan.',
+        'ju..an',
+        'juan@correo.com',
+      ];
+      for (final u in malos) {
+        expect(AuthServicio.validarUsuario(u), isNotNull, reason: u);
+      }
+    });
+  });
+
+  group('validar contraseña', () {
+    test('mínimo 6 caracteres', () {
+      expect(AuthServicio.validarContrasena('12345'), isNotNull);
+      expect(AuthServicio.validarContrasena('123456'), isNull);
+      expect(AuthServicio.validarContrasena(''), isNotNull);
+    });
   });
 }

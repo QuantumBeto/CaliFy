@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permiso de internet: SIN esto la app instalada (APK) no se conecta a Supabase -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
-        android:label="calify"
+        android:label="CaliFy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
