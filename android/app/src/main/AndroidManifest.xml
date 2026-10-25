@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permiso de internet: SIN esto la app instalada (APK) no se conecta a Supabase -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Acceso a la galería para subir imágenes de concurso (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <!-- Fallback para Android 12 e inferiores -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
 
     <application
         android:label="CaliFy"
