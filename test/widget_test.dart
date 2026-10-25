@@ -1,22 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calify/auth_servicio.dart';
-import 'package:calify/config.dart';
 
 void main() {
-  group('usuario -> correo interno', () {
-    test('agrega el dominio interno y pasa a minúsculas', () {
-      expect(AuthServicio.usuarioACorreo('Juan'), 'juan@${Config.dominioInterno}');
-      expect(AuthServicio.usuarioACorreo('  maria.lopez '),
-          'maria.lopez@${Config.dominioInterno}');
-    });
-
-    test('si ya trae @ se respeta', () {
-      expect(AuthServicio.usuarioACorreo('Beto@Hotmail.com'), 'beto@hotmail.com');
-    });
-  });
-
-  group('validar usuario', () {
+  group('validar usuario (al registrarse)', () {
     test('acepta nombres válidos', () {
       for (final u in ['juan', 'Juan', 'maria.lopez', 'banda_01', 'a-b-c', 'abc']) {
         expect(AuthServicio.validarUsuario(u), isNull, reason: u);
@@ -41,11 +28,41 @@ void main() {
     });
   });
 
-  group('validar contraseña', () {
-    test('mínimo 6 caracteres', () {
+  group('validar correo', () {
+    test('acepta correos válidos', () {
+      for (final c in ['a@b.com', 'maria.lopez@gmail.com', ' juan@correo.mx ']) {
+        expect(AuthServicio.validarCorreo(c), isNull, reason: c);
+      }
+    });
+
+    test('rechaza correos inválidos', () {
+      for (final c in ['', 'juan', 'juan@', '@correo.com', 'juan@correo', 'ju an@correo.com']) {
+        expect(AuthServicio.validarCorreo(c), isNotNull, reason: c);
+      }
+    });
+  });
+
+  group('al entrar', () {
+    test('acepta usuario o correo y rechaza vacío o espacios', () {
+      expect(AuthServicio.validarUsuarioOCorreoEntrada('beto'), isNull);
+      expect(AuthServicio.validarUsuarioOCorreoEntrada('beto@correo.com'), isNull);
+      expect(AuthServicio.validarUsuarioOCorreoEntrada(''), isNotNull);
+      expect(AuthServicio.validarUsuarioOCorreoEntrada('beto lopez'), isNotNull);
+    });
+  });
+
+  group('contraseña y código', () {
+    test('contraseña de mínimo 6 caracteres', () {
       expect(AuthServicio.validarContrasena('12345'), isNotNull);
       expect(AuthServicio.validarContrasena('123456'), isNull);
       expect(AuthServicio.validarContrasena(''), isNotNull);
+    });
+
+    test('código de 6 a 10 números', () {
+      expect(AuthServicio.validarCodigo('123456'), isNull);
+      expect(AuthServicio.validarCodigo('12345'), isNotNull);
+      expect(AuthServicio.validarCodigo('12a456'), isNotNull);
+      expect(AuthServicio.validarCodigo(''), isNotNull);
     });
   });
 }

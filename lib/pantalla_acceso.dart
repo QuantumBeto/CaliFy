@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'auth_servicio.dart';
+import 'pantalla_recuperar.dart';
 
 /// Entrar o crear cuenta. Al lograrlo, PuertaDeSesion cambia sola al inicio.
 class PantallaAcceso extends StatefulWidget {
@@ -13,6 +14,8 @@ class PantallaAcceso extends StatefulWidget {
 class _PantallaAccesoState extends State<PantallaAcceso> {
   final _formulario = GlobalKey<FormState>();
   final _usuario = TextEditingController();
+  final _correo = TextEditingController();
+  final _correo2 = TextEditingController();
   final _nombre = TextEditingController();
   final _contrasena = TextEditingController();
   final _confirmar = TextEditingController();
@@ -25,6 +28,8 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
   @override
   void dispose() {
     _usuario.dispose();
+    _correo.dispose();
+    _correo2.dispose();
     _nombre.dispose();
     _contrasena.dispose();
     _confirmar.dispose();
@@ -41,6 +46,7 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
       if (_registro) {
         await AuthServicio.registrar(
           usuario: _usuario.text,
+          correo: _correo.text,
           nombre: _nombre.text,
           contrasena: _contrasena.text,
         );
@@ -60,6 +66,12 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
       _registro = registro;
       _error = null;
     });
+  }
+
+  void _abrirRecuperar() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const PantallaRecuperar()),
+    );
   }
 
   @override
@@ -111,22 +123,56 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
                       enabled: !_cargando,
                       autocorrect: false,
                       enableSuggestions: false,
+                      keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: _registro ? 'Usuario' : 'Usuario o correo',
                         helperText: _registro
-                            ? 'Letras, números, punto, guion o guion bajo'
+                            ? 'Con él entrarás. Letras, números, punto, guion o guion bajo'
                             : null,
                         prefixIcon: const Icon(Icons.person_outline),
                         border: const OutlineInputBorder(),
                       ),
                       validator: (valor) => _registro
                           ? AuthServicio.validarUsuario(valor)
-                          : ((valor ?? '').trim().isEmpty
-                              ? 'Escribe tu usuario'
-                              : null),
+                          : AuthServicio.validarUsuarioOCorreoEntrada(valor),
                     ),
                     if (_registro) ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _correo,
+                        enabled: !_cargando,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo',
+                          helperText: 'Solo para recuperar tu contraseña',
+                          prefixIcon: Icon(Icons.mail_outline),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: AuthServicio.validarCorreo,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _correo2,
+                        enabled: !_cargando,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Repite tu correo',
+                          prefixIcon: Icon(Icons.mail_outline),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (valor) =>
+                            (valor ?? '').trim().toLowerCase() ==
+                                    _correo.text.trim().toLowerCase()
+                                ? null
+                                : 'Los correos no coinciden',
+                      ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _nombre,
@@ -176,6 +222,14 @@ class _PantallaAccesoState extends State<PantallaAcceso> {
                               ? 'Escribe tu contraseña'
                               : null),
                     ),
+                    if (!_registro)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _cargando ? null : _abrirRecuperar,
+                          child: const Text('¿Olvidaste tu contraseña?'),
+                        ),
+                      ),
                     if (_registro) ...[
                       const SizedBox(height: 16),
                       TextFormField(
