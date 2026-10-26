@@ -1,7 +1,7 @@
 # CaliFy – Contexto del proyecto
 
 Archivo para retomar el trabajo en cualquier conversación nueva con Claude.
-Última actualización: 2026-10-25.
+Última actualización: 2026-10-26.
 
 ## Qué es
 App móvil (Flutter, Android + iOS) para calificar bandas de guerra en tiempo real en concursos.
@@ -25,8 +25,8 @@ Idioma de trabajo: español. El usuario trabaja en laptops con Windows y VS Code
 - Claves: a la app solo va el **Project URL** y la **anon/publishable key**. La `service_role` nunca se comparte ni se pone en la app.
 
 ## Base de datos (scripts SQL)
-Ya ejecutados por el usuario en Supabase: `calify_supabase.sql`, `calify_parche_01.sql`, `calify_parche_02.sql`.
-Entregado y pendiente de correr por el usuario: `calify_parche_03.sql` (usuario y correo por separado).
+Ya ejecutados por el usuario en Supabase: `calify_supabase.sql`, `calify_parche_01.sql`, `calify_parche_02.sql`, `calify_parche_03.sql` (usuario y correo por separado).
+Entregado y pendiente de correr por el usuario: `calify_parche_04_imagenes.sql` (bucket público `concurso-imagenes`: solo el organizador sube/reemplaza/borra; máx. 5 MB; JPG, PNG o WEBP).
 `calify_supabase.sql` es el script completo actualizado, solo para un proyecto nuevo.
 
 Estructura: `concurso` → `categoria` (nivel, ej. Secundarias "A") → `aspecto` (hoja de evaluación: Revista, Orden cerrado, Toque de bandera, Toques reglamentarios) → `rubro` (renglón con `puntaje_min`, `puntaje_max`, `paso`, `grupo`).
@@ -55,11 +55,19 @@ La app se suscribe a cambios de la tabla `actualizacion` (por concurso) y, al de
 ## Pruebas
 Suite de 159 pruebas sobre PostgreSQL con Supabase simulado. Pasa en base nueva, actualizando con los parches 01, 02 y 03, y con el parche 03 corrido dos veces.
 
+## Interfaz (Flutter) – estado actual
+Archivos en `lib/`: `main.dart` (arranque y puerta de sesión), `config.dart`, `auth_servicio.dart` (registro, entrar, recuperar contraseña), `storage_servicio.dart` (imágenes de concursos), `utiles.dart` (avisos, confirmaciones, carga de datos), `formularios.dart` (formulario genérico para crear/editar), `pantalla_acceso.dart`, `pantalla_recuperar.dart`, `pantalla_inicio.dart` (pestañas por rol), `pestana_concursos.dart`, `pestana_usuarios.dart` (solo organizador: dar rol de Juez, activar/desactivar), `pantalla_concurso.dart` (imagen, estado, categorías), `pantalla_categoria.dart` (hojas de evaluación y bandas), `pantalla_banda.dart` (datos e integrantes).
+Nombres en la interfaz: "Próximamente / En vivo / Finalizado" = BORRADOR / ABIERTO / CERRADO. Los jueces solo califican con el concurso "En vivo".
+Las imágenes se guardan en `concurso-<id>/<marca de tiempo>.<ext>` y la URL pública va en `concurso.imagen_url`; al cambiar la imagen se borra la anterior.
+
 ## Pendiente
-1. Ya hecho: Correr `calify_parche_03.sql`, configurar el SMTP de Gmail y la plantilla "Reset Password" en Supabase, y cambiar el correo del organizador con `cambiar_correo`.
-2. Ya hecho: identificadores de Android corregidos a `com.quantumbeto.calify`. Revisar los de iOS (`PRODUCT_BUNDLE_IDENTIFIER` en `ios/Runner.xcodeproj/project.pbxproj`) si algún día se publica en iOS.
-3. Ya hecho: conexión Flutter–Supabase (login, registro, pantalla de inicio). La app vive en la raíz del repo (`lib/`). Archivos: `main.dart`, `config.dart`, `auth_servicio.dart`, `pantalla_acceso.dart`, `pantalla_recuperar.dart`, `pantalla_inicio.dart`. Falta: pantallas de organizador, juez y resultados en vivo.
-4. Crear el bucket de Storage para las imágenes de los concursos.
-5. Diseñar las pantallas: organizador (administración), juez (captura por hoja y banda) y general (resultados en vivo).
+1. Correr `calify_parche_04_imagenes.sql` en Supabase.
+2. Probar la etapa 1 del organizador: crear concurso con imagen, categoría con la plantilla, bandas con integrantes y dar rol de Juez a un usuario.
+3. Etapa 2 (organizador): asignar jueces a las hojas de cada categoría (tabla `asignacion`) y editor de hojas y criterios (agregar, quitar, cambiar escalas, descripción de cada nivel).
+4. Etapa 3 (juez): elegir concurso en vivo, banda y hoja; calificar cada criterio con su escala; comentarios y áreas de oportunidad.
+5. Etapa 4 (todos): resultados y ranking en vivo (`v_ranking`, tiempo real con la tabla `actualizacion`, espera de ~1 s).
 6. Decidir si cada hoja debe pesar igual (hoy pesan por sus puntos: Toques reglamentarios 90 de 156) y la regla de desempate.
-7. Publicación: el usuario eligió distribuir gratis: APK para Android y versión web (también sirve en iPhone desde Safari). El APK necesita el permiso INTERNET en `AndroidManifest.xml` (ya agregado).
+7. Publicación: el usuario eligió distribuir gratis: APK para Android y versión web (también sirve en iPhone desde Safari). Revisar los identificadores de iOS si algún día se publica ahí.
+
+## Cómo retomar con Claude
+Al empezar una conversación nueva, pasarle este archivo y el link del repo. Los scripts SQL son la fuente de verdad de la base de datos.

@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Acceso rápido al cliente de Supabase (ya inicializado en main.dart).
@@ -231,77 +229,5 @@ class AuthServicio {
       return 'Supabase rechazó ese correo. Revisa que esté bien escrito.';
     }
     return 'No se pudo completar la operación: $mensaje';
-  }
-}
-
-
-// =========================================================================
-// Imágenes de concursos (bucket "concurso-imagenes" en Supabase Storage)
-// =========================================================================
-
-/// Resultado al subir una imagen.
-class SubidaImagen {
-  const SubidaImagen({required this.urlPublica, required this.ruta});
-  final String urlPublica; // URL lista para guardar en concurso.imagen_url
-  final String ruta;       // ruta dentro del bucket (para borrarla después)
-}
-
-/// Sube y borra imágenes del bucket "concurso-imagenes".
-/// Solo el organizador tiene permiso (política de Storage en Supabase).
-class StorageServicio {
-  static const _bucket = 'concurso-imagenes';
-
-  /// Sube [bytes] como imagen del concurso [idConcurso].
-  ///
-  /// [extension] debe ser 'jpg', 'jpeg', 'png' o 'webp' (sin punto).
-  /// Si ya existía una imagen para ese concurso, la reemplaza.
-  /// Devuelve [SubidaImagen] con la URL pública y la ruta en el bucket.
-  static Future<SubidaImagen> subirImagen({
-    required int idConcurso,
-    required Uint8List bytes,
-    required String extension,
-  }) async {
-    final ext = extension.toLowerCase().replaceAll('.', '');
-    final ruta = 'concurso-$idConcurso.$ext';
-
-    await db.storage.from(_bucket).uploadBinary(
-      ruta,
-      bytes,
-      fileOptions: FileOptions(
-        contentType: _contentType(ext),
-        upsert: true, // reemplaza si ya existe
-      ),
-    );
-
-    final url = db.storage.from(_bucket).getPublicUrl(ruta);
-    return SubidaImagen(urlPublica: url, ruta: ruta);
-  }
-
-  /// Elimina la imagen del bucket (cuando el organizador la quita del concurso).
-  /// [ruta] es el valor devuelto por [subirImagen] (ej. "concurso-5.jpg").
-  static Future<void> borrarImagen(String ruta) async {
-    await db.storage.from(_bucket).remove([ruta]);
-  }
-
-  /// Guarda la URL de la imagen en la tabla concurso.
-  static Future<void> guardarUrlEnConcurso(int idConcurso, String? url) async {
-    await db
-        .from('concurso')
-        .update({'imagen_url': url})
-        .eq('id_concurso', idConcurso);
-  }
-
-  static String _contentType(String ext) {
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      default:
-        return 'application/octet-stream';
-    }
   }
 }
